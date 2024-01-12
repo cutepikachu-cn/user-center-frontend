@@ -1,4 +1,4 @@
-import { getNotices } from '@/services/ant-design-pro/api';
+import { getNotices } from '@/services/ant-design-pro/userAPI';
 import { message, Tag } from 'antd';
 import { groupBy } from 'lodash';
 import moment from 'moment';

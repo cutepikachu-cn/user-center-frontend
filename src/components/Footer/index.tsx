@@ -1,16 +1,8 @@
 import { GithubOutlined } from '@ant-design/icons';
 import { DefaultFooter } from '@ant-design/pro-components';
-import { useIntl } from 'umi';
-
 const Footer: React.FC = () => {
-  const intl = useIntl();
-  const defaultMessage = intl.formatMessage({
-    id: 'app.copyright.produced',
-    defaultMessage: '蚂蚁集团体验技术部出品',
-  });
-
+  const defaultMessage = '用户中心项目';
   const currentYear = new Date().getFullYear();
-
   return (
     <DefaultFooter
       copyright={`${currentYear} ${defaultMessage}`}
@@ -24,7 +16,7 @@ const Footer: React.FC = () => {
         {
           key: 'github',
           title: <GithubOutlined />,
-          href: 'https://github.com/ant-design/ant-design-pro',
+          href: 'https://github.com/2894462606/user-center-frontend',
           blankTarget: true,
         },
         {
@@ -37,5 +29,4 @@ const Footer: React.FC = () => {
     />
   );
 };
-
 export default Footer;
