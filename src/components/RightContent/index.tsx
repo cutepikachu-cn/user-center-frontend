@@ -28,7 +28,7 @@ const GlobalHeaderRight: React.FC = () => {
             value: 'umi ui',
           },
           {
-            label: <a href="next.ant.design">Ant Design</a>,
+            label: <a href="https://next.ant.design">Ant Design</a>,
             value: 'Ant Design',
           },
           {

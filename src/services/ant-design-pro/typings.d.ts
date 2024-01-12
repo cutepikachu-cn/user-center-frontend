@@ -3,79 +3,76 @@
 
 declare namespace API {
   type CurrentUser = {
-    name?: string;
-    avatar?: string;
-    userid?: string;
-    email?: string;
-    signature?: string;
-    title?: string;
-    group?: string;
-    tags?: { key?: string; label?: string }[];
-    notifyCount?: number;
-    unreadCount?: number;
-    country?: string;
-    access?: string;
-    geographic?: {
-      province?: { label?: string; key?: string };
-      city?: { label?: string; key?: string };
-    };
-    address?: string;
+    id?: number;
+    account?: string;
+    nickname?: string;
+    avatarUrl?: string;
+    profile?: string;
+    gender?: boolean;
+    age?: number;
     phone?: string;
+    email?: string;
+    createTime?: Record<string, unknown>;
+    role?: number;
+    tags?: Record<string, unknown>[];
+  };
+  type User = {
+    id?: number;
+    account?: string;
+    nickname?: string;
+    avatarUrl?: string;
+    profile?: string;
+    gender?: boolean;
+    age?: number;
+    phone?: string;
+    email?: string;
+    status?: number;
+    createTime?: Record<string, unknown>;
+    updateTime?: Record<string, unknown>;
+    isDelete?: boolean;
+    role?: number;
+    tags?: Record<string, unknown>[];
+  };
+  type Team = {
+    id: number;
+    name: string;
+    description: string;
+    maxNumber: number;
+    expireTime: Record<string, unknown>;
+    userId: number;
+    createUserId: number;
+    status: number;
+    tags: Record<string, unknown>[];
+    createTime: Record<string, unknown>;
+    updateTime: Record<string, unknown>;
+    isDelete: boolean;
   };
 
-  type LoginResult = {
-    status?: string;
-    type?: string;
-    currentAuthority?: string;
+  type Page<T> = {
+    size: number;
+    records: T[];
+    current: number;
+    total: number;
+    pages: number;
+  };
+  type BaseResponse<T> = {
+    code?: number;
+    message?: string;
+    data?: T;
   };
 
   type PageParams = {
     current?: number;
-    pageSize?: number;
+    size?: number;
   };
-
-  type RuleListItem = {
-    key?: number;
-    disabled?: boolean;
-    href?: string;
-    avatar?: string;
-    name?: string;
-    owner?: string;
-    desc?: string;
-    callNo?: number;
-    status?: number;
-    updatedAt?: string;
-    createdAt?: string;
-    progress?: number;
-  };
-
-  type RuleList = {
-    data?: RuleListItem[];
-    /** 列表的内容总数 */
-    total?: number;
-    success?: boolean;
-  };
-
-  type FakeCaptcha = {
-    code?: number;
-    status?: string;
-  };
-
   type LoginParams = {
-    username?: string;
+    account?: string;
     password?: string;
-    autoLogin?: boolean;
-    type?: string;
   };
 
-  type ErrorResponse = {
-    /** 业务约定的错误码 */
-    errorCode: string;
-    /** 业务上的错误信息 */
-    errorMessage?: string;
-    /** 业务上的请求是否成功 */
-    success?: boolean;
-  };
+  type LoginResult = BaseResponse<CurrentUser>;
+  type ListUserResult = BaseResponse<Page<User>>;
+  type ListTeamResult = BaseResponse<Page<Team>>;
 
   type NoticeIconList = {
     data?: NoticeIconItem[];
