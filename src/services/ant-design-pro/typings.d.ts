@@ -72,7 +72,9 @@ declare namespace API {
 
   type LoginResult = BaseResponse<CurrentUser>;
   type ListUserResult = BaseResponse<Page<User>>;
+  type UserUpdateResult = BaseResponse<User>;
   type ListTeamResult = BaseResponse<Page<Team>>;
+  type TeamUpdateResult = BaseResponse<Team>;
 
   type NoticeIconList = {
     data?: NoticeIconItem[];

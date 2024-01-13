@@ -1,55 +1,21 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/userAPI';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import {
-  FooterToolbar,
-  ModalForm,
-  PageContainer,
-  ProDescriptions,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-} from '@ant-design/pro-components';
-import { Button, Drawer, Input, message } from 'antd';
-import React, { useRef, useState } from 'react';
+import { listUser, removeUser, updateUser } from '@/services/ant-design-pro/userAPI';
+import { UserOutlined } from '@ant-design/icons';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
+import { Avatar, message, Tag } from 'antd';
+import React, { useRef } from 'react';
 import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
 
 /**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
-const handleAdd = async (fields: API.RuleListItem) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addRule({
-      ...fields,
-    });
-    hide();
-    message.success('Added successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Adding failed, please try again!');
-    return false;
-  }
-};
-
-/**
- * @en-US Update node
- * @zh-CN 更新节点
+ * @en-US Update user
+ * @zh-CN 更新用户
  *
  * @param fields
  */
 const handleUpdate = async (fields: FormValueType) => {
   const hide = message.loading('Configuring');
   try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
+    await updateUser({});
     hide();
     message.success('Configuration is successful');
     return true;
@@ -66,12 +32,12 @@ const handleUpdate = async (fields: FormValueType) => {
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
+const handleRemove = async (selectedRows: API.User[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
+    await removeUser({
+      id: selectedRows.map((row) => row.id),
     });
     hide();
     message.success('Deleted successfully and will refresh soon');
@@ -82,247 +48,185 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
     return false;
   }
 };
-const TeamManageTable: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
-  const [createModalVisible, handleModalVisible] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
-  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
-  const [showDetail, setShowDetail] = useState<boolean>(false);
-  const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
 
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-
-  const columns: ProColumns<API.RuleListItem>[] = [
-    {
-      title: '规则名称',
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
-    },
-    {
-      title: '描述',
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
-        },
-        1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
-        },
-      },
-    },
-    {
-      title: '上次调度时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(record);
-          }}
-        >
-          配置
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          订阅警报
-        </a>,
+const columns: ProColumns<API.User>[] = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    valueType: 'digit',
+    editable: false,
+  },
+  {
+    title: '账户',
+    dataIndex: 'account',
+    ellipsis: true,
+    editable: false,
+  },
+  {
+    title: '昵称',
+    dataIndex: 'nickname',
+    ellipsis: true,
+  },
+  {
+    title: '头像',
+    dataIndex: 'avatarUrl',
+    ellipsis: true,
+    valueType: 'avatar',
+    render: (_, record) => (
+      <Avatar
+        src={record.avatarUrl ? record.avatarUrl : null}
+        icon={record.avatarUrl ? <UserOutlined /> : null}
+      />
+    ),
+  },
+  {
+    title: '个人介绍',
+    dataIndex: 'profile',
+    ellipsis: true,
+  },
+  {
+    title: '性别',
+    dataIndex: 'gender',
+    ellipsis: true,
+    valueType: 'select',
+    fieldProps: {
+      options: [
+        { label: '男', value: true },
+        { label: '女', value: false },
       ],
     },
-  ];
-  return (
-    <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
-        actionRef={actionRef}
-        rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalVisible(true);
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>,
-        ]}
-        request={rule}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
-      />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
-      <ModalForm
-        title={'新建规则'}
-        width="400px"
-        visible={createModalVisible}
-        onVisibleChange={handleModalVisible}
-        onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
-            handleModalVisible(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
+  },
+  {
+    title: '年龄',
+    dataIndex: 'age',
+    ellipsis: true,
+    valueType: 'digit',
+  },
+  {
+    title: '手机号',
+    dataIndex: 'phone',
+    ellipsis: true,
+  },
+  {
+    title: '邮箱',
+    dataIndex: 'email',
+    ellipsis: true,
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    ellipsis: true,
+    valueType: 'select',
+    fieldProps: {
+      options: [{ label: <Tag color="green">正常</Tag>, value: 0 }],
+    },
+  },
+  {
+    title: '注册时间',
+    dataIndex: 'createTime',
+    valueType: 'dateTime',
+    ellipsis: true,
+    editable: false,
+  },
+  {
+    title: '更新时间',
+    dataIndex: 'updateTime',
+    valueType: 'dateTime',
+    ellipsis: true,
+    editable: false,
+  },
+  {
+    title: '是否删除',
+    dataIndex: 'isDelete',
+    ellipsis: true,
+    valueType: 'select',
+    fieldProps: {
+      options: [
+        { label: <Tag color="green">正常</Tag>, value: false },
+        { label: <Tag color="red">已删除</Tag>, value: true },
+      ],
+    },
+  },
+  {
+    title: '角色',
+    dataIndex: 'role',
+    ellipsis: true,
+    valueType: 'select',
+    fieldProps: {
+      options: [
+        { label: <Tag color="green">普通用户</Tag>, value: 0 },
+        { label: <Tag color="blue">管理员</Tag>, value: 1 },
+      ],
+    },
+  },
+  {
+    title: '操作',
+    valueType: 'option',
+    key: 'option',
+    render: (text, record, _, action) => [
+      <a
+        key="editable"
+        onClick={() => {
+          action?.startEditable?.(record.id);
         }}
       >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-        />
-        <ProFormTextArea width="md" name="desc" />
-      </ModalForm>
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalVisible(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalVisible(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        updateModalVisible={updateModalVisible}
-        values={currentRow || {}}
-      />
+        编辑
+      </a>,
+    ],
+  },
+];
 
-      <Drawer
-        width={600}
-        visible={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
-          />
-        )}
-      </Drawer>
-    </PageContainer>
+const TeamManageTable: React.FC = () => {
+  const actionRef = useRef<ActionType>();
+  return (
+    <ProTable<API.User>
+      columns={columns}
+      actionRef={actionRef}
+      cardBordered
+      request={async (params: API.PageParams) => {
+        const result = await listUser(params);
+        const userPage = result.data;
+        if (!userPage) {
+          return {
+            success: false,
+          };
+        }
+        return {
+          data: userPage?.records,
+          success: true,
+          total: userPage?.total,
+        };
+      }}
+      editable={{
+        type: 'multiple',
+        onSave: async (key, record) => {
+          console.log(record);
+          return updateUser(record);
+        },
+        onDelete: async (key) => {
+          console.log(key);
+          return removeUser({ id: key as number });
+        },
+      }}
+      columnsState={{
+        persistenceKey: 'pro-table-singe-demos',
+        persistenceType: 'localStorage',
+        onChange(value) {
+          console.log('value: ', value);
+        },
+      }}
+      rowKey="id"
+      search={{
+        labelWidth: 'auto',
+      }}
+      pagination={{
+        pageSize: 5,
+        pageSizeOptions: [5, 10],
+      }}
+      dateFormatter="string"
+      headerTitle="用户管理"
+    />
   );
 };
+
 export default TeamManageTable;

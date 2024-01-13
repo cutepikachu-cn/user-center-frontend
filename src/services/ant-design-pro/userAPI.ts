@@ -37,15 +37,23 @@ export async function listUser(params: API.PageParams, options?: { [key: string]
   });
 }
 
-export async function listTeam(params: API.PageParams, options?: { [key: string]: any }) {
-  return request<API.ListTeamResult>('/admin/team/list', {
-    method: 'GET',
+export async function updateUser(body: API.User, options?: { [key: string]: any }) {
+  return request<API.UserUpdateResult>('/admin/user/update', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function removeUser(params: { userId: number }, options?: { [key: string]: any }) {
+  return request<API.BaseResponse<any>>('/admin/user/delete', {
+    method: 'DELETE',
     params: {
       ...params,
     },
     ...(options || {}),
   });
 }
-
-export async function updateUser(body: API.User) {}
-export async function removeUser(params: { id: number }) {}

@@ -4,47 +4,40 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Avatar, message, Tag } from 'antd';
 import React, { useRef } from 'react';
-import type { FormValueType } from './components/UpdateForm';
 
-/**
- * @en-US Update user
- * @zh-CN 更新用户
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
+const handleUpdate = async (body: API.User) => {
+  const hide = message.loading('正在保存');
   try {
-    await updateUser({});
+    const res: API.UserUpdateResult = await updateUser(body);
     hide();
-    message.success('Configuration is successful');
+    if (res.code !== 0) {
+      throw new Error();
+    }
+    message.success('编辑成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Configuration failed, please try again!');
+    message.error('编辑失败，请重试!');
     return false;
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.User[]) => {
+const handleRemove = async (userId: number) => {
   const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
+  if (!userId) return true;
   try {
-    await removeUser({
-      id: selectedRows.map((row) => row.id),
+    const res = await removeUser({
+      userId,
     });
     hide();
-    message.success('Deleted successfully and will refresh soon');
+    if (res.code !== 0) {
+      throw new Error();
+    }
+    message.success('删除成功，即将刷新');
     return true;
   } catch (error) {
     hide();
-    message.error('Delete failed, please try again');
+    message.error('删除失败，请重试');
     return false;
   }
 };
@@ -89,6 +82,7 @@ const columns: ProColumns<API.User>[] = [
     dataIndex: 'gender',
     ellipsis: true,
     valueType: 'select',
+    align: 'center',
     fieldProps: {
       options: [
         { label: '男', value: true },
@@ -101,6 +95,7 @@ const columns: ProColumns<API.User>[] = [
     dataIndex: 'age',
     ellipsis: true,
     valueType: 'digit',
+    align: 'center',
   },
   {
     title: '手机号',
@@ -117,6 +112,7 @@ const columns: ProColumns<API.User>[] = [
     dataIndex: 'status',
     ellipsis: true,
     valueType: 'select',
+    align: 'center',
     fieldProps: {
       options: [{ label: <Tag color="green">正常</Tag>, value: 0 }],
     },
@@ -140,6 +136,8 @@ const columns: ProColumns<API.User>[] = [
     dataIndex: 'isDelete',
     ellipsis: true,
     valueType: 'select',
+    editable: false,
+    align: 'center',
     fieldProps: {
       options: [
         { label: <Tag color="green">正常</Tag>, value: false },
@@ -152,6 +150,7 @@ const columns: ProColumns<API.User>[] = [
     dataIndex: 'role',
     ellipsis: true,
     valueType: 'select',
+    align: 'center',
     fieldProps: {
       options: [
         { label: <Tag color="green">普通用户</Tag>, value: 0 },
@@ -176,6 +175,25 @@ const columns: ProColumns<API.User>[] = [
   },
 ];
 
+function diffUser(oldUser: API.User, newUser: API.User): API.User {
+  const result: API.User = { id: oldUser.id };
+
+  for (const key in oldUser) {
+    if (!newUser.hasOwnProperty(key) || oldUser[key] !== newUser[key]) {
+      result[key] = newUser[key];
+    }
+  }
+
+  // 包括obj2中有而obj1中没有的属性
+  for (const key in newUser) {
+    if (!oldUser.hasOwnProperty(key)) {
+      result[key] = newUser[key];
+    }
+  }
+
+  return result;
+}
+
 const UserManageTable: React.FC = () => {
   const actionRef = useRef<ActionType>();
   return (
@@ -199,13 +217,13 @@ const UserManageTable: React.FC = () => {
       }}
       editable={{
         type: 'multiple',
-        onSave: async (key, record) => {
-          console.log(record);
-          return updateUser(record);
+        onSave: async (key, record, originRow) => {
+          console.log(diffUser(record, originRow));
+          return handleUpdate(record);
         },
         onDelete: async (key) => {
           console.log(key);
-          return removeUser({ id: key as number });
+          return handleRemove(key as number);
         },
       }}
       columnsState={{

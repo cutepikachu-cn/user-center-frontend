@@ -80,7 +80,7 @@ const Login: React.FC = () => {
             items={[{ key: 'login', label: '登录' }]}
           />
 
-          {code !== 0 && <LoginMessage content={'错误的用户名和密码'} />}
+          {code === 40100 && <LoginMessage content={'错误的用户名和密码'} />}
           {activeTab === 'login' && (
             <>
               <ProFormText
