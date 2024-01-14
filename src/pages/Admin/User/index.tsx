@@ -1,18 +1,18 @@
-import { listUser, removeUser, updateUser } from '@/services/ant-design-pro/userAPI';
 import { UserOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Avatar, message, Tag } from 'antd';
 import React, { useRef } from 'react';
+import { listUser, removeUser, updateUser } from '@/services/ant-design-pro/userAPI';
 
 const handleUpdate = async (body: API.User) => {
   const hide = message.loading('正在保存');
   try {
     const res: API.UserUpdateResult = await updateUser(body);
-    hide();
     if (res.code !== 0) {
       throw new Error();
     }
+    hide();
     message.success('编辑成功');
     return true;
   } catch (error) {
@@ -29,10 +29,10 @@ const handleRemove = async (userId: number) => {
     const res = await removeUser({
       userId,
     });
-    hide();
     if (res.code !== 0) {
       throw new Error();
     }
+    hide();
     message.success('删除成功，即将刷新');
     return true;
   } catch (error) {
@@ -132,20 +132,6 @@ const columns: ProColumns<API.User>[] = [
     editable: false,
   },
   {
-    title: '是否删除',
-    dataIndex: 'isDelete',
-    ellipsis: true,
-    valueType: 'select',
-    editable: false,
-    align: 'center',
-    fieldProps: {
-      options: [
-        { label: <Tag color="green">正常</Tag>, value: false },
-        { label: <Tag color="red">已删除</Tag>, value: true },
-      ],
-    },
-  },
-  {
     title: '角色',
     dataIndex: 'role',
     ellipsis: true,
@@ -184,7 +170,6 @@ function diffUser(oldUser: API.User, newUser: API.User): API.User {
     }
   }
 
-  // 包括obj2中有而obj1中没有的属性
   for (const key in newUser) {
     if (!oldUser.hasOwnProperty(key)) {
       result[key] = newUser[key];
@@ -218,8 +203,8 @@ const UserManageTable: React.FC = () => {
       editable={{
         type: 'multiple',
         onSave: async (key, record, originRow) => {
-          console.log(diffUser(record, originRow));
-          return handleUpdate(record);
+          console.log(diffUser(originRow, record));
+          return handleUpdate(diffUser(originRow, record));
         },
         onDelete: async (key) => {
           console.log(key);

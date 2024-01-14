@@ -1,55 +1,47 @@
-import { listUser, removeUser, updateUser } from '@/services/ant-design-pro/userAPI';
-import { UserOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Avatar, message, Tag } from 'antd';
+import { message, Tag } from 'antd';
 import React, { useRef } from 'react';
-import type { FormValueType } from './components/UpdateForm';
+import { listTeam, removeTeam, updateTeam } from '@/services/ant-design-pro/teamAPI';
 
-/**
- * @en-US Update user
- * @zh-CN 更新用户
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
+const handleUpdate = async (body: API.Team) => {
+  const hide = message.loading('正在保存');
   try {
-    await updateUser({});
+    const res: API.TeamUpdateResult = await updateTeam(body);
+    if (res.code !== 0) {
+      throw new Error();
+    }
     hide();
-    message.success('Configuration is successful');
+    message.success('编辑成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Configuration failed, please try again!');
+    message.error('编辑失败，请重试!');
     return false;
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.User[]) => {
+const handleRemove = async (teamId: number) => {
   const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
+  if (!teamId) return true;
   try {
-    await removeUser({
-      id: selectedRows.map((row) => row.id),
+    const res = await removeTeam({
+      teamId,
     });
+    if (res.code !== 0) {
+      throw new Error();
+    }
     hide();
-    message.success('Deleted successfully and will refresh soon');
+    message.success('删除成功，即将刷新');
     return true;
   } catch (error) {
     hide();
-    message.error('Delete failed, please try again');
+    message.error('删除失败，请重试');
     return false;
   }
 };
 
-const columns: ProColumns<API.User>[] = [
+const columns: ProColumns<API.Team>[] = [
   {
     title: 'ID',
     dataIndex: 'id',
@@ -57,72 +49,56 @@ const columns: ProColumns<API.User>[] = [
     editable: false,
   },
   {
-    title: '账户',
-    dataIndex: 'account',
+    title: '名称',
+    dataIndex: 'name',
+    ellipsis: true,
+  },
+  {
+    title: '描述',
+    dataIndex: 'description',
+    ellipsis: true,
+  },
+  {
+    title: '最大人数',
+    dataIndex: 'maxNumber',
+    ellipsis: true,
+    valueType: 'digit',
+    align: 'center',
+  },
+  {
+    title: '过期时间',
+    dataIndex: 'expireTime',
+    ellipsis: true,
+    valueType: 'dateTime',
+  },
+  {
+    title: '队长ID',
+    dataIndex: 'userId',
     ellipsis: true,
     editable: false,
   },
   {
-    title: '昵称',
-    dataIndex: 'nickname',
+    title: '创建人ID',
+    dataIndex: 'createUserId',
     ellipsis: true,
+    editable: false,
   },
   {
-    title: '头像',
-    dataIndex: 'avatarUrl',
-    ellipsis: true,
-    valueType: 'avatar',
-    render: (_, record) => (
-      <Avatar
-        src={record.avatarUrl ? record.avatarUrl : null}
-        icon={record.avatarUrl ? <UserOutlined /> : null}
-      />
-    ),
-  },
-  {
-    title: '个人介绍',
-    dataIndex: 'profile',
-    ellipsis: true,
-  },
-  {
-    title: '性别',
-    dataIndex: 'gender',
+    title: '队伍类型',
+    dataIndex: 'status',
     ellipsis: true,
     valueType: 'select',
+    align: 'center',
     fieldProps: {
       options: [
-        { label: '男', value: true },
-        { label: '女', value: false },
+        { label: <Tag color="default">公开</Tag>, value: 0 },
+        { label: <Tag color="success">私密</Tag>, value: 1 },
+        { label: <Tag color="purple">加密</Tag>, value: 2 },
       ],
     },
   },
   {
-    title: '年龄',
-    dataIndex: 'age',
-    ellipsis: true,
-    valueType: 'digit',
-  },
-  {
-    title: '手机号',
-    dataIndex: 'phone',
-    ellipsis: true,
-  },
-  {
-    title: '邮箱',
-    dataIndex: 'email',
-    ellipsis: true,
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    ellipsis: true,
-    valueType: 'select',
-    fieldProps: {
-      options: [{ label: <Tag color="green">正常</Tag>, value: 0 }],
-    },
-  },
-  {
-    title: '注册时间',
+    title: '创建时间',
     dataIndex: 'createTime',
     valueType: 'dateTime',
     ellipsis: true,
@@ -134,30 +110,6 @@ const columns: ProColumns<API.User>[] = [
     valueType: 'dateTime',
     ellipsis: true,
     editable: false,
-  },
-  {
-    title: '是否删除',
-    dataIndex: 'isDelete',
-    ellipsis: true,
-    valueType: 'select',
-    fieldProps: {
-      options: [
-        { label: <Tag color="green">正常</Tag>, value: false },
-        { label: <Tag color="red">已删除</Tag>, value: true },
-      ],
-    },
-  },
-  {
-    title: '角色',
-    dataIndex: 'role',
-    ellipsis: true,
-    valueType: 'select',
-    fieldProps: {
-      options: [
-        { label: <Tag color="green">普通用户</Tag>, value: 0 },
-        { label: <Tag color="blue">管理员</Tag>, value: 1 },
-      ],
-    },
   },
   {
     title: '操作',
@@ -176,36 +128,54 @@ const columns: ProColumns<API.User>[] = [
   },
 ];
 
+function diffTeam(oldTeam: API.Team, newTeam: API.Team): API.Team {
+  const result: API.Team = { id: oldTeam.id };
+
+  for (const key in oldTeam) {
+    if (!newTeam.hasOwnProperty(key) || oldTeam[key] !== newTeam[key]) {
+      result[key] = newTeam[key];
+    }
+  }
+
+  for (const key in newTeam) {
+    if (!oldTeam.hasOwnProperty(key)) {
+      result[key] = newTeam[key];
+    }
+  }
+
+  return result;
+}
+
 const TeamManageTable: React.FC = () => {
   const actionRef = useRef<ActionType>();
   return (
-    <ProTable<API.User>
+    <ProTable<API.Team>
       columns={columns}
       actionRef={actionRef}
       cardBordered
       request={async (params: API.PageParams) => {
-        const result = await listUser(params);
-        const userPage = result.data;
-        if (!userPage) {
+        const result = await listTeam(params);
+        const teamPage = result.data;
+        if (!teamPage) {
           return {
             success: false,
           };
         }
         return {
-          data: userPage?.records,
+          data: teamPage?.records,
           success: true,
-          total: userPage?.total,
+          total: teamPage?.total,
         };
       }}
       editable={{
         type: 'multiple',
-        onSave: async (key, record) => {
-          console.log(record);
-          return updateUser(record);
+        onSave: async (key, record, originRow) => {
+          console.log(diffTeam(originRow, record));
+          return handleUpdate(diffTeam(originRow, record));
         },
         onDelete: async (key) => {
           console.log(key);
-          return removeUser({ id: key as number });
+          return handleRemove(key as number);
         },
       }}
       columnsState={{
@@ -224,7 +194,7 @@ const TeamManageTable: React.FC = () => {
         pageSizeOptions: [5, 10],
       }}
       dateFormatter="string"
-      headerTitle="用户管理"
+      headerTitle="队伍管理"
     />
   );
 };
